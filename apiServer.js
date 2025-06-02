@@ -36,6 +36,7 @@ app.get('/', (req, res) => {
   	res.send('<h3>Welcome to Hours Tracker server app!</h3>')
 })
 
+// POST request to check user login credentials
 app.post('/verifyUserCredential', async (req, res) => {
 	console.log("POST request received : " + JSON.stringify(req.body) + "\n"); 
 	try {  
@@ -43,14 +44,8 @@ app.post('/verifyUserCredential', async (req, res) => {
 			email:req.body.email, 
 			password:req.body.password
 		}, {projection:{_id:0}});
-		
-		console.log( JSON.stringify(doc) + " have been retrieved\n");
+		console.log("Request Outcome: " + JSON.stringify(doc));
 		res.status(200).send(doc); 
-		if (doc) {
-			console.log("Login success - User found:\n", doc, "\n");
-		} else {
-			console.log("Login failed - Invalid credentials\n");
-		}
 	} catch (err) {
 		res.status(500).json({ message: "Server error", error: err });
 	}
@@ -62,13 +57,8 @@ app.get('/verifyNewUserEmail', async (req, res) => {
 	console.log("GET request received : " + JSON.stringify(req.query.email) + "\n"); 
 	try {  
 		const doc = await userCollection.findOne({email:req.query.email}, {projection:{_id:0}});
-		console.log( JSON.stringify(doc) + " have been retrieved\n");
+		console.log("Request Outcome: " + JSON.stringify(doc));
 		res.status(200).send(doc); 
-		if (JSON.stringify(doc) != null) {
-			console.log("Verification success - Email available:\n");
-		} else {
-			console.log("Verification failed - Email not Available:\n", doc, "\n");
-		}
 	} catch (err) {
 		console.log("Server error" + err + "\n");
 		res.status(500).json({ message: "Server error", error: err });
@@ -80,13 +70,30 @@ app.post('/insertUserData', async (req, res) => {
     console.log("POST request received : " + JSON.stringify(req.body) + "\n"); 
 	const userData = req.body; 	
 	try {
-		const result = await userCollection.insertOne(userData);
-		console.log("User record with ID "+ result.insertedId + " has been inserted\n");
-		res.status(200).send(result);
+		const doc = await userCollection.insertOne(userData);
+		console.log("Request Outcome: " + JSON.stringify(doc));
+		res.status(200).send(doc);
 	} catch (err) {	
 		console.log("Server error" + err + "\n");	
 		res.status(500).json({ message: "Server error", error: err });
 	}  
+});
+
+// PUT request to update allowed hours
+app.put('/updateAllowedHours', async (req, res) => {
+	const { email, allowedHours } = req.body;
+    console.log("PUT request received : " + JSON.stringify(email) + ", " + JSON.stringify(allowedHours) +"\n"); 
+	try {
+		const doc = await userCollection.updateOne(
+			{ email },
+			{ $set: { allowedHours: allowedHours } }
+		);
+		console.log("Request Outcome: " + JSON.stringify(doc));
+		res.status(200).send(doc);
+	} catch (err) {
+		console.log("Server error" + err + "\n");	
+		res.status(500).json({ message: "Server error", error: err });
+	}
 });
 
 // GET request to check whether job name already exists or not
@@ -97,13 +104,8 @@ app.get('/verifyNewJobName', async (req, res) => {
 		
 	try {  
 		const doc = await jobCollection.findOne({ name: jobName, userEmail });
-		console.log( JSON.stringify(doc) + " have been retrieved\n");
+		console.log("Request Outcome: " + JSON.stringify(doc));
 		res.status(200).send(doc); 
-		if (JSON.stringify(doc) != null) {
-			console.log("Verification success - Name available:\n");
-		} else {
-			console.log("Verification failed - Name not Available:\n", doc, "\n");
-		}
 	} catch (err) {
 		console.log("Server error" + err + "\n");
 		res.status(500).json({ message: "Server error", error: err });
@@ -115,9 +117,9 @@ app.post('/insertJobData', async (req, res) => {
     console.log("POST request received : " + JSON.stringify(req.body) + "\n"); 
 	const jobData = req.body; 	
 	try {
-		const result = await jobCollection.insertOne(jobData);
-		console.log("Job record with ID "+ result.insertedId + " has been inserted\n");
-		res.status(200).send(result);
+		const doc = await jobCollection.insertOne(jobData);
+		console.log("Request Outcome: " + JSON.stringify(doc));
+		res.status(200).send(doc);
 	} catch (err) {	
 		console.log("Server error" + err + "\n");	
 		res.status(500).json({ message: "Server error", error: err });
@@ -128,9 +130,9 @@ app.post('/insertJobData', async (req, res) => {
 app.get('/getJobs', async (req, res) => {
 	console.log("GET request received : " + JSON.stringify(req.query.userEmail) + "\n"); 
 	try {
-		const docs = await jobCollection.find({userEmail: req.query.userEmail}).toArray();
-		console.log(JSON.stringify(docs) + " have been retrieved\n");
-		res.status(200).send(docs); 
+		const doc = await jobCollection.find({userEmail: req.query.userEmail}).toArray();
+		console.log("Request Outcome: " + JSON.stringify(doc));
+		res.status(200).send(doc); 
 	} catch (err) {
 		console.log("Server error" + err + "\n");
 		res.status(500).json({ message: "Server error", error: err });
@@ -143,9 +145,9 @@ app.post('/insertHourData', async (req, res) => {
 	const hourData = req.body; 	
 	hourData.hoursWorked = parseFloat(hourData.hoursWorked);
 	try {
-		const result = await hourCollection.insertOne(hourData);
-		console.log("Job record with ID "+ result.insertedId + " has been inserted\n");
-		res.status(200).send(result);
+		const doc = await hourCollection.insertOne(hourData);
+		console.log("Request Outcome: " + JSON.stringify(doc));
+		res.status(200).send(doc);
 	} catch (err) {	
 		console.log("Server error" + err + "\n");	
 		res.status(500).json({ message: "Server error", error: err });
@@ -158,75 +160,60 @@ app.get('/getHours', async (req, res) => {
 	console.log("GET request received : " + JSON.stringify(req.query.userEmail) + 
 		", " + JSON.stringify(req.query.jobName) + "\n"); 
 	try {
-		const docs = await hourCollection.find({
+		const doc = await hourCollection.find({
             userEmail: userEmail,
             jobName: jobName
         }).toArray();
-		console.log(JSON.stringify(docs) + " have been retrieved\n");
-		res.status(200).send(docs); 
+		console.log("Request Outcome: " + JSON.stringify(doc));
+		res.status(200).send(doc); 
 	} catch (err) {
 		console.log("Server error" + err + "\n");
 		res.status(500).json({ message: "Server error", error: err });
 	}
 });
 
-// GET request to load hour data for logged in user
+// GET request to load all hour data for logged in user
 app.get('/getHoursForAllJobs', async (req, res) => {
 	console.log("GET request received : " + JSON.stringify(req.query.userEmail) + "\n"); 
 	try {
-		const docs = await hourCollection.find({userEmail: req.query.userEmail}).toArray();
-		console.log(JSON.stringify(docs) + " have been retrieved\n");
-		res.status(200).send(docs); 
+		const doc = await hourCollection.find({userEmail: req.query.userEmail}).toArray();
+		console.log("Request Outcome: " + JSON.stringify(doc));
+		res.status(200).send(doc); 
 	} catch (err) {
 		console.log("Server error" + err + "\n");
 		res.status(500).json({ message: "Server error", error: err });
 	}
 });
 
-app.get("/getHourRecordsForUser", async (req, res) => {
-	const email = req.query.email;
-	if (!email) return res.status(400).json({ message: "Missing email" });
-
-	try {
-		const records = await hourCollection.find({ userEmail: email }).toArray();
-		res.status(200).json(records);
-	} catch (err) {
-		console.log("Error fetching user hour records:", err);
-		res.status(500).json({ message: "Server error", error: err });
-	}
-});
-
+// DELETE request to selected job and hours
 app.delete('/deleteJobAndHours', async (req, res) => {
 	const { userEmail, jobName } = req.body;
 	console.log("DELETE request received : " + JSON.stringify(userEmail) +
 		", " + JSON.stringify(jobName) + "\n"); 
-
 	try {
 		const jobDel = await jobCollection.deleteOne({ userEmail, name: jobName });
 		const hourDel = await hourCollection.deleteMany({ userEmail, jobName });
-		console.log("DELETE job response : " + JSON.stringify(jobDel) + "\n")
-		console.log("DELETE hour response : " + JSON.stringify(hourDel) + "\n")
-
-		res.status(200).json({ message: "Job and associated hours deleted." });
+		console.log("Request Outcome: " + JSON.stringify(jobDel) + ", " + JSON.stringify(hourDel));
+		res.status(200).json(jobDel);
 	} catch (err) {
 		console.error("Delete error:", err);
 		res.status(500).json({ message: "Server error", error: err });
 	}
 });
 
+// DELETE request to selected hour record
 app.delete('/deleteHourRecord/:id', async (req, res) => {
 	const recordId = req.params.id;
 	console.log("DELETE request received : " + JSON.stringify(recordId) + "\n"); 
-
 	try {
-		await hourCollection.deleteOne({ _id: new ObjectId(recordId) });
-		res.status(200).json({ message: "Hour record deleted." });
+		const doc = await hourCollection.deleteOne({ _id: new ObjectId(recordId) });
+		console.log("Request Outcome: " + JSON.stringify(doc));
+		res.status(200).json(doc);
 	} catch (err) {
 		console.error("Error deleting hour record:", err);
 		res.status(500).json({ message: "Server error", error: err });
 	}
 });
-
 
 
 app.listen(port, () => {
