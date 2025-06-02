@@ -45,7 +45,7 @@ app.post('/verifyUserCredential', async (req, res) => {
 			password:req.body.password
 		}, {projection:{_id:0}});
 		console.log("Request Outcome: " + JSON.stringify(doc));
-		res.status(200).send(doc); 
+		res.status(200).json(doc); 
 	} catch (err) {
 		res.status(500).json({ message: "Server error", error: err });
 	}
@@ -58,7 +58,7 @@ app.get('/verifyNewUserEmail', async (req, res) => {
 	try {  
 		const doc = await userCollection.findOne({email:req.query.email}, {projection:{_id:0}});
 		console.log("Request Outcome: " + JSON.stringify(doc));
-		res.status(200).send(doc); 
+		res.status(200).json(doc); 
 	} catch (err) {
 		console.log("Server error" + err + "\n");
 		res.status(500).json({ message: "Server error", error: err });
@@ -72,7 +72,7 @@ app.post('/insertUserData', async (req, res) => {
 	try {
 		const doc = await userCollection.insertOne(userData);
 		console.log("Request Outcome: " + JSON.stringify(doc));
-		res.status(200).send(doc);
+		res.status(200).json(doc);
 	} catch (err) {	
 		console.log("Server error" + err + "\n");	
 		res.status(500).json({ message: "Server error", error: err });
@@ -89,7 +89,7 @@ app.put('/updateAllowedHours', async (req, res) => {
 			{ $set: { allowedHours: allowedHours } }
 		);
 		console.log("Request Outcome: " + JSON.stringify(doc));
-		res.status(200).send(doc);
+		res.status(200).json(doc);
 	} catch (err) {
 		console.log("Server error" + err + "\n");	
 		res.status(500).json({ message: "Server error", error: err });
@@ -105,7 +105,7 @@ app.get('/verifyNewJobName', async (req, res) => {
 	try {  
 		const doc = await jobCollection.findOne({ name: jobName, userEmail });
 		console.log("Request Outcome: " + JSON.stringify(doc));
-		res.status(200).send(doc); 
+		res.status(200).json(doc); 
 	} catch (err) {
 		console.log("Server error" + err + "\n");
 		res.status(500).json({ message: "Server error", error: err });
@@ -119,7 +119,7 @@ app.post('/insertJobData', async (req, res) => {
 	try {
 		const doc = await jobCollection.insertOne(jobData);
 		console.log("Request Outcome: " + JSON.stringify(doc));
-		res.status(200).send(doc);
+		res.status(200).json(doc);
 	} catch (err) {	
 		console.log("Server error" + err + "\n");	
 		res.status(500).json({ message: "Server error", error: err });
@@ -132,7 +132,7 @@ app.get('/getJobs', async (req, res) => {
 	try {
 		const doc = await jobCollection.find({userEmail: req.query.userEmail}).toArray();
 		console.log("Request Outcome: " + JSON.stringify(doc));
-		res.status(200).send(doc); 
+		res.status(200).json(doc); 
 	} catch (err) {
 		console.log("Server error" + err + "\n");
 		res.status(500).json({ message: "Server error", error: err });
@@ -147,7 +147,7 @@ app.post('/insertHourData', async (req, res) => {
 	try {
 		const doc = await hourCollection.insertOne(hourData);
 		console.log("Request Outcome: " + JSON.stringify(doc));
-		res.status(200).send(doc);
+		res.status(200).json(doc);
 	} catch (err) {	
 		console.log("Server error" + err + "\n");	
 		res.status(500).json({ message: "Server error", error: err });
@@ -165,7 +165,7 @@ app.get('/getHours', async (req, res) => {
             jobName: jobName
         }).toArray();
 		console.log("Request Outcome: " + JSON.stringify(doc));
-		res.status(200).send(doc); 
+		res.status(200).json(doc); 
 	} catch (err) {
 		console.log("Server error" + err + "\n");
 		res.status(500).json({ message: "Server error", error: err });
@@ -178,7 +178,7 @@ app.get('/getHoursForAllJobs', async (req, res) => {
 	try {
 		const doc = await hourCollection.find({userEmail: req.query.userEmail}).toArray();
 		console.log("Request Outcome: " + JSON.stringify(doc));
-		res.status(200).send(doc); 
+		res.status(200).json(doc); 
 	} catch (err) {
 		console.log("Server error" + err + "\n");
 		res.status(500).json({ message: "Server error", error: err });
