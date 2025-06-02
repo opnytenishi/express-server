@@ -42,7 +42,6 @@ app.post('/verifyUserCredential', async (req, res) => {
 	
 	let email = String(req.body.email);
     let pass = String(req.body.password);
-	
 	let query = {
         email: email,
         password: pass
@@ -61,8 +60,14 @@ app.post('/verifyUserCredential', async (req, res) => {
 // GET request to check whether email address already exists or not
 app.get('/verifyNewUserEmail', async (req, res) => {
 	console.log("GET request received : " + JSON.stringify(req.query.email) + "\n"); 
+	
+	let email = String(req.query.email);	
+	let query = {
+        email: email
+    }
+	
 	try {  
-		const doc = await userCollection.findOne({email:req.query.email}, {projection:{_id:0}});
+		const doc = await userCollection.findOne(query);
 		console.log("Request Outcome: " + JSON.stringify(doc));
 		res.status(200).json(doc); 
 	} catch (err) {
@@ -104,12 +109,18 @@ app.put('/updateAllowedHours', async (req, res) => {
 
 // GET request to check whether job name already exists or not
 app.get('/verifyNewJobName', async (req, res) => {
-	const { userEmail, jobName } = req.query;
-	console.log("GET request received : " + JSON.stringify(userEmail) + 
-		", " + JSON.stringify(jobName) + "\n"); 
+	console.log("GET request received : " + JSON.stringify(req.query.userEmail) + 
+		", " + JSON.stringify(req.query.jobName) + "\n"); 
+		
+	let jobName = String(req.query.jobName);
+    let userEmail = String(req.query.userEmail);
+	let query = {
+        name: jobName,
+        userEmail: userEmail
+    }
 		
 	try {  
-		const doc = await jobCollection.findOne({ name: jobName, userEmail });
+		const doc = await jobCollection.findOne(query);
 		console.log("Request Outcome: " + JSON.stringify(doc));
 		res.status(200).json(doc); 
 	} catch (err) {
