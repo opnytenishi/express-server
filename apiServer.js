@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const { ObjectId } = require('mongodb');
 const app = express();
 const port = 3000;
 
@@ -183,16 +184,47 @@ app.get('/getHoursForAllJobs', async (req, res) => {
 });
 
 app.get("/getHourRecordsForUser", async (req, res) => {
-  const email = req.query.email;
-  if (!email) return res.status(400).json({ message: "Missing email" });
+	const email = req.query.email;
+	if (!email) return res.status(400).json({ message: "Missing email" });
 
-  try {
-    const records = await hourCollection.find({ userEmail: email }).toArray();
-    res.status(200).json(records);
-  } catch (err) {
-    console.log("Error fetching user hour records:", err);
-    res.status(500).json({ message: "Server error", error: err });
-  }
+	try {
+		const records = await hourCollection.find({ userEmail: email }).toArray();
+		res.status(200).json(records);
+	} catch (err) {
+		console.log("Error fetching user hour records:", err);
+		res.status(500).json({ message: "Server error", error: err });
+	}
+});
+
+app.delete('/deleteJobAndHours', async (req, res) => {
+	const { userEmail, jobName } = req.body;
+	console.log("DELETE request received : " + JSON.stringify(userEmail) +
+		", " + JSON.stringify(jobName) + "\n"); 
+
+	try {
+		const jobDel = await jobCollection.deleteOne({ userEmail, name: jobName });
+		const hourDel = await hourCollection.deleteMany({ userEmail, jobName });
+		console.log("DELETE job response : " + JSON.stringify(jobDel) + "\n")
+		console.log("DELETE hour response : " + JSON.stringify(hourDel) + "\n")
+
+		res.status(200).json({ message: "Job and associated hours deleted." });
+	} catch (err) {
+		console.error("Delete error:", err);
+		res.status(500).json({ message: "Server error", error: err });
+	}
+});
+
+app.delete('/deleteHourRecord/:id', async (req, res) => {
+	const recordId = req.params.id;
+	console.log("DELETE request received : " + JSON.stringify(recordId) + "\n"); 
+
+	try {
+		await hourCollection.deleteOne({ _id: new ObjectId(recordId) });
+		res.status(200).json({ message: "Hour record deleted." });
+	} catch (err) {
+		console.error("Error deleting hour record:", err);
+		res.status(500).json({ message: "Server error", error: err });
+	}
 });
 
 
