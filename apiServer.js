@@ -92,13 +92,22 @@ app.post('/insertUserData', async (req, res) => {
 
 // PUT request to update allowed hours
 app.put('/updateAllowedHours', async (req, res) => {
-	const { email, allowedHours } = req.body;
-    console.log("PUT request received : " + JSON.stringify(email) + ", " + JSON.stringify(allowedHours) +"\n"); 
+    console.log("PUT request received : " + JSON.stringify(req.body.email) + 
+		", " + JSON.stringify(req.body.allowedHours) +"\n"); 
+	
+	let email = String(req.body.email);
+    let allowedHours = String(req.body.allowedHours);
+	let query = {
+        email: email
+    }
+	let setQuery = {
+        $set: { 
+			allowedHours: allowedHours 
+		}
+    }
+	
 	try {
-		const doc = await userCollection.updateOne(
-			{ email },
-			{ $set: { allowedHours: allowedHours } }
-		);
+		const doc = await userCollection.updateOne(query, setQuery);
 		console.log("Request Outcome: " + JSON.stringify(doc));
 		res.status(200).json(doc);
 	} catch (err) {
@@ -146,8 +155,14 @@ app.post('/insertJobData', async (req, res) => {
 // GET request to load All Job data for logged in user
 app.get('/getJobs', async (req, res) => {
 	console.log("GET request received : " + JSON.stringify(req.query.userEmail) + "\n"); 
+	
+	let userEmail = String(req.query.userEmail);	
+	let query = {
+        userEmail: userEmail
+    }
+	
 	try {
-		const doc = await jobCollection.find({userEmail: req.query.userEmail}).toArray();
+		const doc = await jobCollection.find(query).toArray();
 		console.log("Request Outcome: " + JSON.stringify(doc));
 		res.status(200).json(doc); 
 	} catch (err) {
@@ -173,14 +188,18 @@ app.post('/insertHourData', async (req, res) => {
 
 // GET request to load hour data for logged in user for given job
 app.get('/getHours', async (req, res) => {
-	const { userEmail, jobName } = req.query;
 	console.log("GET request received : " + JSON.stringify(req.query.userEmail) + 
 		", " + JSON.stringify(req.query.jobName) + "\n"); 
+	
+	let userEmail = String(req.query.userEmail);	
+	let jobName = String(req.query.jobName);
+	let query = {
+        userEmail: userEmail,
+        jobName: jobName
+    }
+	
 	try {
-		const doc = await hourCollection.find({
-            userEmail: userEmail,
-            jobName: jobName
-        }).toArray();
+		const doc = await hourCollection.find(query).toArray();
 		console.log("Request Outcome: " + JSON.stringify(doc));
 		res.status(200).json(doc); 
 	} catch (err) {
@@ -192,8 +211,14 @@ app.get('/getHours', async (req, res) => {
 // GET request to load all hour data for logged in user
 app.get('/getHoursForAllJobs', async (req, res) => {
 	console.log("GET request received : " + JSON.stringify(req.query.userEmail) + "\n"); 
+	
+	let userEmail = String(req.query.userEmail);	
+	let query = {
+        userEmail: userEmail
+    }
+	
 	try {
-		const doc = await hourCollection.find({userEmail: req.query.userEmail}).toArray();
+		const doc = await hourCollection.find(query).toArray();
 		console.log("Request Outcome: " + JSON.stringify(doc));
 		res.status(200).json(doc); 
 	} catch (err) {
@@ -204,12 +229,23 @@ app.get('/getHoursForAllJobs', async (req, res) => {
 
 // DELETE request to selected job and hours
 app.delete('/deleteJobAndHours', async (req, res) => {
-	const { userEmail, jobName } = req.body;
-	console.log("DELETE request received : " + JSON.stringify(userEmail) +
-		", " + JSON.stringify(jobName) + "\n"); 
+	console.log("DELETE request received : " + JSON.stringify(req.body.userEmail) +
+		", " + JSON.stringify(req.body.jobName) + "\n"); 
+		
+	let userEmail = String(req.body.userEmail);
+	let jobName = String(req.body.jobName);		
+	let jobQuery = {
+        userEmail: userEmail,
+		name: jobName
+    }
+	let hourQuery = {
+        userEmail: userEmail,
+		jobName: jobName
+    }
+	
 	try {
-		const jobDel = await jobCollection.deleteOne({ userEmail, name: jobName });
-		const hourDel = await hourCollection.deleteMany({ userEmail, jobName });
+		const jobDel = await jobCollection.deleteOne(query);
+		const hourDel = await hourCollection.deleteMany(hourQuery);
 		console.log("Request Outcome: " + JSON.stringify(jobDel) + ", " + JSON.stringify(hourDel));
 		res.status(200).json(jobDel);
 	} catch (err) {
@@ -220,10 +256,15 @@ app.delete('/deleteJobAndHours', async (req, res) => {
 
 // DELETE request to selected hour record
 app.delete('/deleteHourRecord/:id', async (req, res) => {
-	const recordId = req.params.id;
-	console.log("DELETE request received : " + JSON.stringify(recordId) + "\n"); 
+	console.log("DELETE request received : " + JSON.stringify(req.params.id) + "\n"); 
+	
+	let recordId = String(req.params.id);
+	let query = {
+        _id: new ObjectId(recordId)
+    }
+	
 	try {
-		const doc = await hourCollection.deleteOne({ _id: new ObjectId(recordId) });
+		const doc = await hourCollection.deleteOne(query);
 		console.log("Request Outcome: " + JSON.stringify(doc));
 		res.status(200).json(doc);
 	} catch (err) {
