@@ -39,11 +39,17 @@ app.get('/', (req, res) => {
 // POST request to check user login credentials
 app.post('/verifyUserCredential', async (req, res) => {
 	console.log("POST request received : " + JSON.stringify(req.body) + "\n"); 
+	
+	let email = String(req.body.email);
+    let pass = String(req.body.password);
+	
+	let query = {
+        email: email,
+        password: pass
+    }
+	
 	try {  
-		const doc = await userCollection.findOne({
-			email:req.body.email, 
-			password:req.body.password
-		}, {projection:{_id:0}});
+		const doc = await userCollection.findOne(query);
 		console.log("Request Outcome: " + JSON.stringify(doc));
 		res.status(200).json(doc); 
 	} catch (err) {
