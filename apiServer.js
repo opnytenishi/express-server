@@ -244,7 +244,7 @@ app.delete('/deleteJobAndHours', async (req, res) => {
     }
 	
 	try {
-		const jobDel = await jobCollection.deleteOne(query);
+		const jobDel = await jobCollection.deleteOne(jobQuery);
 		const hourDel = await hourCollection.deleteMany(hourQuery);
 		console.log("Request Outcome: " + JSON.stringify(jobDel) + ", " + JSON.stringify(hourDel));
 		res.status(200).json(jobDel);
